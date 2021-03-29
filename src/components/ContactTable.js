@@ -16,7 +16,7 @@ import { Table, Button } from 'react-bootstrap';
             </tr>
         );
     }
-    const ContactTableRow = ({ contact }) => {
+    const ContactTableRow = ({ contact, toggleEdit, toggleDelete }) => {
         return (
             <tr>
                 <td>{contact.contactId}</td>
@@ -25,8 +25,8 @@ import { Table, Button } from 'react-bootstrap';
                 <td>{contact.company}</td>
                 <td>{contact.phone}</td>
                 <td>{contact.email}</td>
-                <td><Button>Edit</Button></td>
-                <td><Button>Delete</Button></td>
+                <td><Button onClick={toggleEdit} value={contact.contactId}>Edit</Button></td>
+                <td><Button onClick={toggleDelete} value={contact.contactId}>Delete</Button></td>
             </tr>
         );
     }
@@ -68,7 +68,9 @@ import { Table, Button } from 'react-bootstrap';
             </thead>
             <tbody>
             {this.props.contacts.map((contact, i) => {
-                    return <ContactTableRow contact = {contact} key={i} />
+                    return <ContactTableRow contact = {contact} key={i} 
+                    toggleEdit={this.props.handleEdit}
+                    toggleDelete={this.props.handleDelete} />
                     })}
             </tbody>
         </Table>)

@@ -5,9 +5,86 @@ import ContactModal from './components/ContactModal';
 import ContactTable from './components/ContactTable';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col } from 'react-bootstrap'
+import React from 'react';
 
+const SERVICE_URL = "https://tsg-contactlist.herokuapp.com"
 
-function App() {
+class App extends React.Component {
+
+  state = {
+    loading: false,
+    contactData: [
+      {
+        "contactId": 1, "firstName": "Fake",
+        "lastName": "Data",
+        "company": "Unknown Inc.",
+        "phone": "000-0000",
+        "email": "fakedata@unknown.io"
+      }],
+      newContactData: {
+        firstName: '',
+        lastName: '',
+        company: '',
+        phone: '',
+        email: ''
+      }  
+  }
+
+  handleAddFormChange = (event) => {
+    // The event triggering this function should be an input's onChange event
+    // We need to grab the input's name & value so we can associate it with the
+    // newContactData within the App's state.
+    let inputName = event.target.name;
+    let inputValue = event.target.value;
+    let contactInfo = this.state.newContactData;
+
+    console.log(`Updating new contact data: ${inputName} : ${inputValue}`)
+
+    if (contactInfo.hasOwnProperty(inputName)) {
+      contactInfo[inputName] = inputValue;
+      this.setState({ newContactData: contactInfo })
+    }
+  }
+
+  handleAddFormSubmit = (event) => {
+    console.log("Adding contact!")
+    if (event) event.preventDefault();
+
+    fetch(SERVICE_URL + '/contact/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(this.state.newContactData),
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Add Contact - Success:', data);
+        this.setState({ newContactData: { firstName: '', lastName: '', company: '', phone: '', email: '' } })
+        this.loadContactData();
+      })
+      .catch((error) => {
+        console.log('Add Contact - Error:')
+        console.log(error)
+      });
+  }
+
+  loadContactData() {
+    this.setState({ loading: true })
+    console.log("Loading contact data")
+    fetch(SERVICE_URL + "/contacts")
+      .then(data => data.json())
+      .then(data => this.setState(
+        { contactData: data, loading: false }
+      ))
+  }
+
+  componentDidMount() {
+    console.log("App is now mounted.")
+    this.loadContactData();
+  }
+
+render() {
   return (
     <Container fluid>
       <Row>
@@ -20,21 +97,23 @@ function App() {
       <Row>
         <Col sm={8}>
           <h2>My Contacts</h2>
-          <ContactTable />
+          <ContactTable contacts={this.state.contactData} />
         </Col>
 
         <Col sm={4}>
           <h2>Add New Contact</h2>
-          <ContactForm/>
+          <ContactForm 
+            handleSubmit={this.handleAddFormSubmit}
+            handleChange={this.handleAddFormChange}          
+            contactData={this.state.newContactData} />
         </Col>
       </Row>
 
       {/* <ContactModal/> */}
 
     </Container>
-
-
   );
+}
 }
 
 export default App;
